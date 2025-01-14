@@ -1,16 +1,11 @@
 #!/bin/bash
-# File: converter.sh
-# Date: August 19th, 2016
-# Time: 18:56:52 +0800
 # Author: kn007 <kn007@126.com>
-# Blog: https://kn007.net
+# Modified by: hiwanz <princeb4d@gmail.com>
 # Link: https://github.com/kn007/silk-v3-decoder
-# Usage: sh converter.sh silk_v3_file/input_folder output_format/output_folder flag(format)
-# Flag: not define   ----  not define, convert a file
-#       other value  ----  format, convert a folder, batch conversion support
-# Requirement: gcc ffmpeg
+# Usage: sh converter.sh input_folder output_folder format
+# Requirement: ffmpeg
 
-# Colors
+# 预设颜色
 RED="$(tput setaf 1 2>/dev/null || echo '\e[0;31m')"
 GREEN="$(tput setaf 2 2>/dev/null || echo '\e[0;32m')"
 YELLOW="$(tput setaf 3 2>/dev/null || echo '\e[0;33m')"
@@ -25,19 +20,16 @@ while [ -L "$SOURCE" ]; do
   [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
 done
 cur_dir=$(cd "$(dirname "$SOURCE")" && pwd)
+decoder_bin="$cur_dir/silk/decoder"
 
-if [ ! -r "$cur_dir/silk/decoder" ]; then
+# 检查是否存在解码器
+if [ ! -r "$decoder_bin" ]; then
 	echo -e "${WHITE}[Notice]${RESET} Silk v3 Decoder is not found, compile it."
-	cd $cur_dir/silk
-	make && make decoder
-	[ ! -r "$cur_dir/silk/decoder" ]&&echo -e "${RED}[Error]${RESET} Silk v3 Decoder Compile False, Please Check Your System For GCC."&&exit
-	echo -e "${WHITE}========= Silk v3 Decoder Compile Finish =========${RESET}"
 fi
 
-cd $cur_dir
-
+# 批量转换
 while [ $3 ]; do
-	[[ ! -z "$(pidof ffmpeg)" ]]&&echo -e "${RED}[Error]${RESET} ffmpeg is occupied by another application, please check it."&&exit
+	[[ ! -z "$(pgrep ffmpeg)" ]]&&echo -e "${RED}[Error]${RESET} ffmpeg is occupied by another application, please check it."&&exit
 	[ ! -d "$1" ]&&echo -e "${RED}[Error]${RESET} Input folder not found, please check it."&&exit
 	TOTAL=$(ls $1|wc -l)
 	[ ! -d "$2" ]&&mkdir "$2"&&echo -e "${WHITE}[Notice]${RESET} Output folder not found, create it."
@@ -46,7 +38,7 @@ while [ $3 ]; do
 	echo -e "${WHITE}========= Batch Conversion Start ==========${RESET}"
 	ls $1 | while read line; do
 		let CURRENT+=1
-		$cur_dir/silk/decoder "$1/$line" "$2/$line.pcm" > /dev/null 2>&1
+		$decoder_bin "$1/$line" "$2/$line.pcm" > /dev/null 2>&1
 		if [ ! -f "$2/$line.pcm" ]; then
 			ffmpeg -y -i "$1/$line" "$2/${line%.*}.$3" > /dev/null 2>&1 &
 			ffmpeg_pid=$!
@@ -65,7 +57,8 @@ while [ $3 ]; do
 	exit
 done
 
-$cur_dir/silk/decoder "$1" "$1.pcm" > /dev/null 2>&1
+# 单文件转换
+$decoder_bin "$1" "$1.pcm" > /dev/null 2>&1
 if [ ! -f "$1.pcm" ]; then
 	ffmpeg -y -i "$1" "${1%.*}.$2" > /dev/null 2>&1 &
 	ffmpeg_pid=$!
