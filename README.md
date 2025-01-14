@@ -22,7 +22,7 @@ brew install silk2mp3
 二、转换silk3编码音频为mp3:
 
 1. 将前面找到的音频文件拷贝到一个目录下，比如`~/silk`。
-2. 打开终端，在silk目录下执行`silk2mp3 ~/silk/input.silk mp3`即可完成单个音频转换。
-3. 如果需要批量转换，可以执行`silk2mp3 ~/silk ~/output_folder mp3`即可完成音频批量转换。
+2. 打开终端，执行`silk2mp3 ~/silk/input.silk mp3`即可完成单个音频转换。
+3. 如果需要批量转换多个音频，可以执行`silk2mp3 ~/silk ~/output_folder mp3`即可完成音频批量转换。
 
 **注：如果你想转的不是mp3格式，可以将mp3参数替换为其他格式，比如aac，wav，flac和ogg等，只要ffmpeg支持的都可以。**
